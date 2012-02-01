@@ -35,7 +35,7 @@ function memberpicker_pagesetup() {
 		}
 	} else if (strpos($url,'groups/profile') !== FALSE) {
 		$group = elgg_get_page_owner_entity();
-		elgg_register_plugin_hook_handler('prepare', 'menu:title', 'memberpicker_title_menu_prepare');
+		//elgg_register_plugin_hook_handler('prepare', 'menu:title', 'memberpicker_title_menu_prepare');
 		if ($group && $group->canEdit()) {
 			elgg_register_menu_item('title', array(
 					'name' => 'groups:add',
@@ -66,7 +66,7 @@ function memberpicker_page_handler($page) {
 	return TRUE;
 }
 
-function memberpicker_title_menu_prepare($hook, $type, $return, $params) {
+/*function memberpicker_title_menu_prepare($hook, $type, $return, $params) {
 	// remove invite button
 	$new_return = array();
 	if (isset($return['default']) && is_array($return['default'])) {
@@ -80,3 +80,4 @@ function memberpicker_title_menu_prepare($hook, $type, $return, $params) {
 	
 	return $return;
 }
+*/
