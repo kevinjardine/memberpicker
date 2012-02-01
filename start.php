@@ -1,5 +1,4 @@
 <?php
-elgg_register_event_handler('init', 'system', 'memberpicker_pagesetup');
 elgg_register_event_handler('init', 'system', 'memberpicker_init');
 
 /**
@@ -8,6 +7,8 @@ elgg_register_event_handler('init', 'system', 'memberpicker_init');
 function memberpicker_init() {
 	
 	elgg_register_library('elgg:memberpicker', elgg_get_plugins_path() . 'memberpicker/models/model.php');
+	
+	elgg_register_event_handler('pagesetup', 'system', 'memberpicker_pagesetup');
 
 	// register the JavaScript
 	$js = elgg_get_simplecache_url('js', 'memberpicker/js');
@@ -25,14 +26,23 @@ function memberpicker_init() {
 function memberpicker_pagesetup() {
 	$url = current_page_url();
 	if (elgg_is_logged_in() && (strpos($url,'groups/members') !== FALSE)) {
-		$bits = explode('/',$url);
-		$group_guid = $bits[count($bits)-1];
-		$group = get_entity($group_guid);
+		$group = elgg_get_page_owner_entity();
 		if ($group && $group->canEdit()) {
 			elgg_set_page_owner_guid($group_guid);
 			elgg_load_js('elgg.memberpicker');
 			elgg_load_js('elgg.userpicker');
 			elgg_load_js('jquery.ui.autocomplete.html');
+		}
+	} else if (strpos($url,'groups/profile') !== FALSE) {
+		$group = elgg_get_page_owner_entity();
+		elgg_register_plugin_hook_handler('prepare', 'menu:title', 'memberpicker_title_menu_prepare');
+		if ($group && $group->canEdit()) {
+			elgg_register_menu_item('title', array(
+					'name' => 'groups:add',
+					'href' => 'groups/members/'.$group->guid,
+					'text' => elgg_echo('memberpicker:title'),
+					'link_class' => 'elgg-button elgg-button-action',
+				));
 		}
 	}
 }
@@ -54,4 +64,19 @@ function memberpicker_page_handler($page) {
 			break;
 	}
 	return TRUE;
+}
+
+function memberpicker_title_menu_prepare($hook, $type, $return, $params) {
+	// remove invite button
+	$new_return = array();
+	if (isset($return['default']) && is_array($return['default'])) {
+		foreach($return['default'] AS $item) {
+			if ($item->getName() != 'groups:invite') {
+				$new_return[] = $item;
+			}
+		}
+	}
+	$return['default'] = $new_return;
+	
+	return $return;
 }
